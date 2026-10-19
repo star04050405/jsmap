@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>js. 学习地图</title>
+<meta name="theme-color" content="#F7DF1E">
+<meta name="description" content="从读 AI 的代码，到自己写一个站——JS 学习地图">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon-180.png">
+<link rel="manifest" href="manifest.json">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{scroll-behavior:smooth}
+body{
+  background:#FBFBF7;color:#17171A;
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Noto Sans SC","Microsoft YaHei",sans-serif;
+  min-height:100vh;overflow-x:hidden;
+}
+code,.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Courier New",monospace}
+.wrap{max-width:640px;margin:0 auto;padding:0 20px 72px}
+.fadein{opacity:0;transform:translateY(18px);transition:opacity .7s ease,transform .7s ease}
+.fadein.in{opacity:1;transform:none}
+/* hero */
+.hero{padding:clamp(44px,10vw,76px) 0 8px}
+.brand{display:inline-block;background:#F7DF1E;color:#17171A;font-weight:900;font-size:clamp(15px,4vw,18px);padding:7px 13px;border-radius:9px;letter-spacing:.02em}
+h1{font-size:clamp(40px,11vw,64px);font-weight:900;letter-spacing:.01em;line-height:1.08;margin-top:18px}
+h1 .y{background:linear-gradient(transparent 62%,#F7DF1E 62%)}
+.sub{margin-top:14px;font-size:15px;color:#63635c;line-height:1.75}
+.sub b{color:#17171A}
+.stats{display:flex;gap:26px;margin-top:26px}
+.stat .n{font-size:clamp(30px,8vw,40px);font-weight:900;letter-spacing:-.02em}
+.stat .n em{font-style:normal;color:#C9A800}
+.stat .l{font-size:11.5px;color:#9a9a90;letter-spacing:.18em;margin-top:2px}
+/* 进度条 */
+.progress{margin-top:30px;background:#fff;border:1.5px solid #17171A;border-radius:14px;padding:15px 17px;position:sticky;top:10px;z-index:40;box-shadow:0 3px 0 #17171A}
+.progress .pl{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:9px}
+.progress .pt{font-size:12.5px;font-weight:800;letter-spacing:.06em}
+.progress .pv{font-size:12px;color:#8a8a80;font-weight:600}
+.bar{height:10px;background:#EFEFE8;border-radius:99px;overflow:hidden}
+.bar i{display:block;height:100%;width:0%;background:#F7DF1E;border-radius:99px;transition:width .5s cubic-bezier(.2,.8,.2,1)}
+/* 阶段 */
+.stage{margin-top:44px}
+.stage-h{display:flex;align-items:baseline;gap:12px;border-bottom:2.5px solid #17171A;padding-bottom:10px}
+.stage-h .no{font-size:13px;font-weight:900;color:#17171A;background:#F7DF1E;padding:3px 9px;border-radius:7px;letter-spacing:.06em}
+.stage-h .t{font-size:clamp(22px,6vw,27px);font-weight:900}
+.stage-h .e{font-size:12px;color:#a0a096;font-style:italic}
+.stage-h .goal{margin-left:auto;font-size:12px;color:#8a8a80}
+.stage-d{margin-top:10px;font-size:13.5px;color:#74746c;line-height:1.7}
+/* 知识卡 */
+.chs{margin-top:6px}
+.ch{border-bottom:1px solid #E7E7DE}
+.ch-h{width:100%;background:none;border:0;display:flex;align-items:center;gap:13px;padding:16px 2px;cursor:pointer;text-align:left;font-family:inherit}
+.ch-h .idx{font-size:11px;font-weight:700;color:#b5b5aa;width:22px;flex:none;font-style:italic}
+.ch-h .nm{font-size:16.5px;font-weight:800;letter-spacing:.01em}
+.ch-h .en{font-size:11.5px;color:#a0a096;margin-top:2px;font-weight:500}
+.ch-h .lamp{margin-left:auto;flex:none;width:24px;height:24px;border-radius:50%;border:1.7px solid #d8d8cc;display:grid;place-items:center;font-size:12px;color:#cfcebd;transition:.25s}
+.ch.done .lamp{background:#F7DF1E;border-color:#17171A;color:#17171A;box-shadow:0 1.5px 0 #17171A}
+.ch-h .caret{flex:none;font-size:10px;color:#c2c2b6;transition:transform .3s}
+.ch.open .caret{transform:rotate(180deg)}
+.ch-b{max-height:0;overflow:hidden;transition:max-height .38s ease}
+.ch.open .ch-b{max-height:900px}
+.ch-bin{padding:2px 2px 20px 35px}
+.say{font-size:14px;line-height:1.8;color:#43433d}
+.say b{color:#17171A;background:linear-gradient(transparent 60%,#F7DF1E 60%)}
+.code{margin-top:12px;background:#17171A;color:#F7DF1E;border-radius:12px;padding:13px 15px;font-size:12.5px;line-height:1.75;overflow-x:auto;white-space:pre}
+.code .c{color:#7d7d6d}
+.where{margin-top:12px;display:flex;gap:9px;align-items:flex-start;background:#FFF9DB;border:1px solid #EFE2A0;border-radius:11px;padding:11px 13px}
+.where .wtag{flex:none;font-size:10.5px;font-weight:900;letter-spacing:.08em;background:#17171A;color:#F7DF1E;padding:3px 7px;border-radius:6px;margin-top:1px}
+.where .wt{font-size:13px;line-height:1.65;color:#4a4a42}
+.where .wt b{color:#17171A}
+.acts{display:flex;gap:9px;margin-top:14px;flex-wrap:wrap}
+.btn{flex:none;border:0;border-radius:99px;padding:10px 18px;font-size:13px;font-weight:800;cursor:pointer;font-family:inherit;letter-spacing:.02em;transition:.18s}
+.btn-dark{background:#17171A;color:#fff;box-shadow:0 2.5px 0 #000}
+.btn-dark:active{transform:translateY(2px);box-shadow:0 .5px 0 #000}
+.btn-lite{background:#fff;color:#17171A;border:1.6px solid #17171A;text-decoration:none;display:inline-flex;align-items:center;gap:5px}
+.btn-lite:active{transform:scale(.97)}
+.ch.done .btn-dark{background:#F7DF1E;color:#17171A;box-shadow:0 2.5px 0 #C9A800}
+/* 资源 */
+.res{margin-top:14px}
+.res a{display:flex;align-items:center;gap:13px;padding:15px 2px;border-bottom:1px solid #E7E7DE;text-decoration:none;color:inherit}
+.res .tag{flex:none;width:44px;height:44px;border-radius:12px;background:#17171A;color:#F7DF1E;display:grid;place-items:center;font-size:15px;font-weight:900}
+.res .rn{font-size:15.5px;font-weight:800}
+.res .rd{font-size:12.5px;color:#8a8a80;margin-top:2px}
+.res .go{margin-left:auto;color:#b5b5aa;font-size:16px;flex:none}
+/* 方法论 */
+.how{margin-top:14px;display:grid;grid-template-columns:1fr 1fr;gap:11px}
+.how .h{background:#fff;border:1.5px solid #17171A;border-radius:15px;padding:15px 15px 16px;box-shadow:0 3px 0 #17171A}
+.how .hn{font-size:11px;font-weight:900;background:#F7DF1E;display:inline-block;padding:3px 8px;border-radius:6px}
+.how .ht{font-size:15.5px;font-weight:900;margin-top:9px}
+.how .hd{font-size:12.5px;color:#6b6b62;line-height:1.7;margin-top:5px}
+/* footer */
+.foot{margin-top:56px;text-align:center;color:#b0b0a4;font-size:12px;line-height:2;letter-spacing:.06em}
+.foot .fb{font-weight:900;color:#17171A;font-size:13px}
+.foot .fy{color:#C9A800}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero fadein">
+    <span class="brand mono">js.</span>
+    <h1>JS <span class="y">学习地图</span></h1>
+    <div class="sub">写给 <b>已经拥有 85 个网站的人</b>：你已经会指挥 AI 写代码了，下一步是<b>读懂它</b>、<b>改得动它</b>，直到<b>自己写得出来</b>。24 个知识点，每个都配你自己站里的真实用例。</div>
+    <div class="stats">
+      <div class="stat"><div class="n">24<em>/</em></div><div class="l">知识点</div></div>
+      <div class="stat"><div class="n">3<em>/</em></div><div class="l">段路线</div></div>
+      <div class="stat"><div class="n">8<em>/</em></div><div class="l">个好去处</div></div>
+    </div>
+    <div class="progress">
+      <div class="pl"><span class="pt">✦ 我的点灯进度</span><span class="pv"><b id="pv">0</b> / 24</span></div>
+      <div class="bar"><i id="pbar"></i></div>
+    </div>
+  </header>
+
+  <main id="stages"></main>
+
+  <section class="stage fadein">
+    <div class="stage-h"><span class="no">GO</span><span class="t">好去处</span><span class="e">Resources</span></div>
+    <div class="res" id="res"></div>
+  </section>
+
+  <section class="stage fadein">
+    <div class="stage-h"><span class="no">HOW</span><span class="t">怎么学</span><span class="e">Method</span></div>
+    <div class="how">
+      <div class="h"><span class="hn">01</span><div class="ht">从你的站里学</div><div class="hd">85 个站都是教材。打开任意一个，指着一个小功能问 AI：「这几行在干嘛？」——比自己刷教程快十倍。</div></div>
+      <div class="h"><span class="hn">02</span><div class="ht">读懂 &gt; 看完</div><div class="hd">别先刷完教程再动手。反过来：先读站里的代码，读不懂的那一个词，才去查。</div></div>
+      <div class="h"><span class="hn">03</span><div class="ht">让 AI 当陪练</div><div class="hd">让它出小作业：「给我一个用 localStorage 的喝水打卡迷你作业」；报错时直接把红字贴给它。</div></div>
+      <div class="h"><span class="hn">04</span><div class="ht">卡住 30 分钟原则</div><div class="hd">一个报错自己折腾 30 分钟，还不行就交给 AI——然后把这次的错记下来，它就是你的错题本。</div></div>
+    </div>
+  </section>
+
+  <footer class="foot fadein">
+    <div class="fb">js. 学习地图</div>
+    <div>从读 AI 的代码，到自己写一个站<br><span class="fy">✦</span> 为 85 个站的站长而写 · 2026.10</div>
+  </footer>
+
+</div>
+<div id="toast"></div>
+<script>
+const STAGES = [
+{
+  no:'01', t:'能读懂', e:'Read', goal:'目标：看懂 AI 给的每一行',
+  d:'不用会写。这一段只练一件事：AI 给你一段代码，你知道每行在干什么、在哪改数字。学完就能看懂站里的数据长什么样。', items:[
+    {n:'变量', en:'let / const', say:'给一个东西<b>起名字</b>。const 是定了就不换的名字（比如课程总数），let 是会变的名字（比如「已完成的数量」）。', code:"const total = 56;   // 定了不换：56 天\nlet done = 3;       // 会变：已完成 3 天\ndone = done + 1;    // 现在 done 是 4",
+      where:'<b>reset56</b> 里 56 天的课表数据，就是用 const 存起来的一整个数组。'},
+    {n:'字符串模板', en:'Template Literals', say:'把变量<b>嵌进句子里</b>。反引号 ` 包住整句，${} 里放变量——拼句子不再需要加号。', code:'const day = 21, name = "臀腿";\nconst msg = `Day ${day} · ${name} 已完成 ✦`;\n// msg 就是 "Day 21 · 臀腿 已完成 ✦"',
+      where:'<b>danshari</b> 每张金句卡的文案，都是模板拼出来的。'},
+    {n:'数组', en:'Array', say:'<b>一排东西</b>，按顺序编号（从 0 开始数！）。格子墙、课程表、歌单，本质全是一个数组。', code:"const chapters = ['地球', '星际之旅', '另一个地球'];\nchapters[0];          // '地球'（第 1 个其实是 [0]）\nchapters.length;      // 3（一共几个）",
+      where:'<b>jojo</b> 的 190 话格子墙 = 一个 190 格的数组。'},
+    {n:'对象', en:'Object', say:'一张<b>名片</b>：左边是字段名，右边是值，用花括号 { } 装。数组的升级版——不只按顺序，还能按名字取。', code:"const site = { name: 'timemap', stars: 85, live: true };\nsite.name;    // 'timemap'\nsite.stars;   // 85",
+      where:'<b>hs2</b> 每一站行程 = 一个对象：{城市, 天数, 花学考点}。'},
+    {n:'条件判断', en:'if / else', say:'走到<b>岔路口</b>：满足条件走这边，不满足走那边。「今天打卡了吗」这种事全靠它。', code:"if (done >= total) {\n  show('🏆 毕业了！');\n} else {\n  show('还差 ' + (total - done) + ' 天');\n}",
+      where:'<b>citybuild</b> 判断今天盖没盖楼，决定亮不亮一块砖。'},
+    {n:'循环', en:'for / forEach', say:'让同一件事<b>自动重复</b>。你写一遍「怎么处理一格」，循环替你对每一格都做一遍——85 个站的卡片列表都是循环渲染的。', code:"const sites = ['timemap', 'starmaker', 'jsmap'];\nsites.forEach(site => {\n  console.log('→ ' + site);\n});",
+      where:'<b>timemap</b> 的 85 张卡片，就是一次循环全画出来的。'},
+    {n:'函数', en:'function', say:'把一段动作<b>打包命名</b>，以后喊名字就执行。像菜谱：写一次「做奶茶」，以后每次喊一遍就行。', code:"function light(idx) {\n  stars[idx].classList.add('lit');\n  count++;\n}\nlight(9);  // 点亮第 9 颗星",
+      where:'<b>energy</b> 每天生成日程的那个函数，你每天打开站它就跑一遍。'},
+    {n:'注释', en:'// comment', say:'<b>给人看的备注</b>，// 后面的字电脑直接跳过。让 AI 加注释，是读懂代码最快的办法。', code:"// 下面这句：把完成数存进浏览器，关页面也不丢\nlocalStorage.setItem('done', done);",
+      where:'<b>每个站</b>的数据区开头都有一行注释，告诉未来的你这段是干嘛的。'}
+  ]
+},
+{
+  no:'02', t:'能改动', e:'Modify', goal:'目标：亲手改出小功能',
+  d:'这一段是「网页为什么活起来」的全部秘密：找到元素、监听点击、切换样式、把数据存下来。学完你就能在 AI 的代码里自己动手改。', items:[
+    {n:'选取元素', en:'querySelector', say:'在整张页面里<b>点名</b>，把某个元素抓到手里。css 选择器怎么写它就怎么找。', code:"const box = document.querySelector('.bar');\nconst btn = document.querySelector('#go');\n// . 开头 = 类，# 开头 = id",
+      where:'<b>polka-check</b> 每次打卡，都是先 querySelector 找到珍珠杯容器。'},
+    {n:'改文字与内容', en:'textContent / innerHTML', say:'抓到元素后<b>换掉它肚子里的东西</b>。textContent 只换字，innerHTML 能塞整段 HTML。', code:"document.querySelector('.nm').textContent = '已完成！';\nlist.innerHTML = cards.join('');  // 一口气塞进所有卡片",
+      where:'<b>muji</b> 的 39 个 SKU，全是 innerHTML 一次塞进去的。'},
+    {n:'点亮样式', en:'classList', say:'元素可以挂<b>好几个 class</b>（名牌），classList 负责：加一个、摘一个、或切换——「点亮」的官方姿势。', code:"card.classList.add('done');     // 挂上名牌 → 变色\ncard.classList.toggle('open');  // 有就摘、没有就挂",
+      where:'<b>bettercall</b> 勾完一集，格子变金色 = classList.add(\'done\')。'},
+    {n:'事件监听', en:'addEventListener', say:'对页面说：<b>「被点了就叫醒我」</b>。点击、滚动、输入，全是事件——交互的第一推动力。', code:"btn.addEventListener('click', () => {\n  alert('你点我了！');\n});",
+      where:'<b>myday</b> 的 47 项日程，每一项都挂着 click 监听。'},
+    {n:'本地存档', en:'localStorage', say:'<b>浏览器的记忆</b>：把数据存在访客自己的设备里，关掉网页、明天打开还在。打卡站的命根子。', code:"localStorage.setItem('key', '值');      // 存\nconst v = localStorage.getItem('key');  // 取\nlocalStorage.removeItem('key');         // 删",
+      where:'<b>shouzhang</b> 每天写的那一页，就存在 localStorage 里。'},
+    {n:'JSON 打包', en:'JSON', say:'存档的<b>打包格式</b>：对象太复杂，存之前压成一串字（JSON.stringify），取出来再拆包（JSON.parse）。', code:"const data = { day: 21, done: [1,2,3] };\nlocalStorage.setItem('save', JSON.stringify(data));\nconst back = JSON.parse(localStorage.getItem('save'));",
+      where:'<b>hunter</b> 的修行进度，就是打包成 JSON 存的。'},
+    {n:'数组加工', en:'map / filter', say:'<b>流水线两件套</b>：map 把每样东西都加工一遍，filter 把不合格的筛掉。组合起来能玩出花。', code:"const nums = [1, 2, 3, 4];\nconst doubled = nums.map(n => n * 2);     // [2,4,6,8]\nconst big    = nums.filter(n => n > 2);   // [3,4]",
+      where:'<b>crashcourse</b> 按「未完成」筛选课程，用的是 filter。'},
+    {n:'看数据', en:'console.log', say:'你的<b>手电筒</b>：把任何东西打到控制台看看长什么样。改不动代码时，先照亮数据，再动手。', code:"console.log('done 是：', done);\nconsole.log('数组长度：', arr.length);\n// F12 → Console（控制台）里看输出",
+      where:'所有站修 bug 的第一步：先 console.log 看看数据长啥样。'}
+  ]
+},
+{
+  no:'03', t:'能写出', e:'Build', goal:'目标：自己拼一个完整站',
+  d:'最后一个秘密其实很简单：所有站都是「数据 → 渲染 → 打卡存档」三步循环。学会这八样，你就能从空白文件拼出自己的站。', items:[
+    {n:'渲染模式', en:'render()', say:'万能配方：<b>数据变了 → 重画整个列表</b>。一个 render 函数吃数据、吐 HTML，别的什么都不用记。', code:"function render() {\n  list.innerHTML = data.map((d, i) =>\n    `<div class='card'>${d.name}</div>`\n  ).join('');\n}",
+      where:'<b>to2027</b> 的「剩 N 天」，就是 render 每天算出来的。'},
+    {n:'状态先行', en:'state first', say:'铁律：<b>先改数据，再调 render</b>。永远别直接偷偷改页面——数据和页面永远从同一条流水线出来，就不会乱。', code:"function toggle(i) {\n  data[i].done = !data[i].done;  // ① 先改数据\n  save();\n  render();                      // ② 再重画\n}",
+      where:'<b>things-done</b> 的打卡 key 带着日期，改的就是数据不是页面。'},
+    {n:'日期', en:'Date', say:'JS 的<b>日历</b>：知道今天几号、星期几，以及两个日子之间差几天——倒数站的全部。', code:"const today = new Date();\nconst target = new Date('2027-01-01');\nconst left = Math.ceil((target - today) / 86400000);\n// 86400000 = 一天的毫秒数",
+      where:'<b>to2027</b> 的「剩 N 天」核心就这三行。'},
+    {n:'随机', en:'Math.random', say:'<b>骰子</b>：random 给 0~1 的小数，乘以长度取整 = 随机抽一个。抽签站全靠它。', code:"const pool = ['薄荷', '海盐', '茉莉'];\nconst pick = pool[Math.floor(Math.random() * pool.length)];",
+      where:'<b>affirm-vending</b> 贩卖机掉出来哪句，就是 Math.random 说的。'},
+    {n:'拼 HTML', en:'模板拼页面', say:'HTML 本来就是字符串——所以可以<b>用模板循环拼出来</b>。这是「数据变页面」的桥。', code:"const html = sites.map(s => `\n  <a class='st' href='${s.u}'>\n    <span>${s.n}</span>\n  </a>`).join('');",
+      where:'<b>italy</b> 的十城卡片，全是模板字符串拼的。'},
+    {n:'事件委托', en:'Event Delegation', say:'聪明做法：<b>给爸爸挂一个监听</b>，管住一串儿子。新加的元素也自动生效，不用一个个挂。', code:"list.addEventListener('click', e => {\n  const card = e.target.closest('.st');\n  if (card) toggle(card.dataset.id);\n});",
+      where:'<b>itsme</b> 的训练列表，就是委托给列表爸爸统一管的。'},
+    {n:'拉数据', en:'fetch', say:'向网上的接口<b>要数据</b>，拿回来是 JSON。天气、电影、翻译……都这么取。', code:"const r = await fetch(apiUrl);\nconst data = await r.json();\nconsole.log(data.title);",
+      where:'<b>screen-log</b> 的电影海报，就是 fetch 从 TMDB 拉的。'},
+    {n:'发布上线', en:'GitHub Pages', say:'写好的文件推上 GitHub，打开 Pages——<b>你就有了一个全网能访问的网址</b>。你已经拥有 85 个，现在知道它们是怎么来的了。', code:"1. GitHub 新建仓库（public）\n2. 上传 index.html\n3. Settings → Pages → 选 main 分支\n4. 等 1 分钟 → 得到网址",
+      where:'<b>85 个站</b>，全都这么上的线——包括你现在用的这个。'}
+  ]
+}
+];
+
+const RES = [
+  {t:'MDN', n:'MDN Web Docs（中文）', d:'JS 官方词典：查任何函数，认准它', u:'https://developer.mozilla.org/zh-CN/docs/Web/JavaScript'},
+  {t:'现代', n:'现代 JavaScript 教程', d:'最推荐的免费中文系统教程，从零到很深', u:'https://zh.javascript.info/'},
+  {t:'FCC', n:'freeCodeCamp 中文', d:'边做边学的免费课程，有中文版', u:'https://www.freecodecamp.org/chinese/'},
+  {t:'菜鸟', n:'菜鸟教程 JS', d:'语法速查表，忘了就来瞄一眼', u:'https://www.runoob.com/js/js-tutorial.html'},
+  {t:'CP', n:'CodePen', d:'在线写 JS 在线看效果，不用装任何东西', u:'https://codepen.io/'},
+  {t:'JS30', n:'JavaScript 30', d:'30 个纯 JS 小项目挑战（英文，练手感）', u:'https://javascript30.com/'},
+  {t:'CIU', n:'Can I Use', d:'查某个功能在手机浏览器能不能用', u:'https://caniuse.com/'},
+  {t:'GP', n:'GitHub Pages 指南', d:'把你的第一个站发布出去', u:'https://pages.github.com/'}
+];
+
+
+// ---------- engine ----------
+const $ = s => document.querySelector(s);
+const KEY = 'jsmap_done';
+let done = new Set(JSON.parse(localStorage.getItem(KEY) || '[]'));
+
+const stagesEl = $('#stages');
+let idx = 0;
+stagesEl.innerHTML = STAGES.map(st => `
+  <section class="stage">
+    <div class="stage-h"><span class="no">${st.no}</span><span class="t">${st.t}</span><span class="e">${st.e}</span><span class="goal">${st.goal}</span></div>
+    <div class="stage-d">${st.d}</div>
+    <div class="chs">${st.items.map(it => {
+      const i = idx++;
+      return `
+      <div class="ch" data-i="${i}">
+        <button class="ch-h" aria-expanded="false">
+          <span class="idx">${String(i+1).padStart(2,'0')}</span>
+          <span><span class="nm">${it.n}</span><span class="en">${it.en}</span></span>
+          <span class="lamp">✦</span>
+          <span class="caret">▼</span>
+        </button>
+        <div class="ch-b"><div class="ch-bin">
+          <div class="say">${it.say}</div>
+          <div class="code">${it.code}</div>
+          <div class="where"><span class="wtag">你的站</span><span class="wt">${it.where}</span></div>
+          <div class="acts">
+            <button class="btn btn-dark mk" data-i="${i}">✦ 学到了，点亮</button>
+            <a class="btn btn-lite" target="_blank" rel="noopener" href="https://developer.mozilla.org/zh-CN/search?q=${encodeURIComponent(it.en)}">MDN 查这个词 ↗</a>
+          </div>
+        </div></div>
+      </div>`;
+    }).join('')}</div>
+  </section>`).join('');
+
+$('#res').innerHTML = RES.map(r => `
+  <a href="${r.u}" target="_blank" rel="noopener">
+    <span class="tag">${r.t}</span>
+    <span><span class="rn">${r.n}</span><br><span class="rd">${r.d}</span></span>
+    <span class="go">↗</span>
+  </a>`).join('');
+
+// 交互：展开
+document.querySelectorAll('.ch-h').forEach(h => h.addEventListener('click', () => {
+  const ch = h.parentElement;
+  const open = ch.classList.toggle('open');
+  h.setAttribute('aria-expanded', open);
+}));
+// 点亮
+const toastEl = $('#toast');
+function toast(msg){
+  toastEl.textContent = msg;
+  toastEl.classList.add('show');
+  clearTimeout(toast._t);
+  toast._t = setTimeout(()=>toastEl.classList.remove('show'), 2200);
+}
+function syncBar(){
+  const n = done.size;
+  $('#pv').textContent = n;
+  $('#pbar').style.width = (n/24*100) + '%';
+  document.querySelectorAll('.ch').forEach(ch => {
+    const i = +ch.dataset.i;
+    ch.classList.toggle('done', done.has(i));
+    const mk = ch.querySelector('.mk');
+    if (mk) mk.textContent = done.has(i) ? '✦ 已点亮' : '✦ 学到了，点亮';
+  });
+  if (n === 24) toast('🏆 24 盏灯全亮——去找 AI 要毕业作业！');
+}
+document.querySelectorAll('.mk').forEach(b => b.addEventListener('click', () => {
+  const i = +b.dataset.i;
+  if (done.has(i)) { done.delete(i); }
+  else {
+    done.add(i);
+    toast('✦ 第 ' + String(i+1).padStart(2,'0') + ' 盏灯亮了');
+  }
+  localStorage.setItem(KEY, JSON.stringify([...done]));
+  syncBar();
+}));
+
+// 入场动画
+const io = new IntersectionObserver(es => es.forEach((e) => {
+  if (e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); }
+}), {threshold:.08});
+document.querySelectorAll('.fadein, .stage').forEach(el => io.observe(el));
+stagesEl.querySelectorAll('.stage').forEach(el => { el.classList.add('fadein'); io.observe(el); });
+
+syncBar();
+
+</script>
+</body>
+</html>
